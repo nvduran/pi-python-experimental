@@ -4,6 +4,8 @@ from flask import Flask, Response
 
 app = Flask(__name__)
 
+# http://127.0.0.1:5000/video_feed
+
 picam2 = Picamera2()
 picam2.start()
 
