@@ -1,22 +1,23 @@
 import io
 from picamera2 import Picamera2
 from flask import Flask, Response
+from threading import Thread
 
 app = Flask(__name__)
 
 # http://127.0.0.1:5000/video_feed
 
 picam2 = Picamera2()
+picam2.configure(picam2.create_preview_configuration(main={"size": (640, 480), "format": "RGB888"}))
+picam2.set_controls({"FrameDurationLimits": (33333, 33333)})  # approximately 30 fps
 picam2.start()
 
 def generate_frames():
-    stream = io.BytesIO()
     while True:
+        stream = io.BytesIO()
         picam2.capture_file(stream, format='jpeg')
         stream.seek(0)
         frame = stream.read()
-        stream.seek(0)
-        stream.truncate()
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
@@ -25,4 +26,5 @@ def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, threaded=True)
+    thread = Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': 5000, 'threaded': True})
+    thread.start()
