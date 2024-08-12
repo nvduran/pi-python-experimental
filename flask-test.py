@@ -2,6 +2,7 @@ import io
 from picamera2 import Picamera2
 from flask import Flask, Response
 from threading import Thread
+import os
 
 app = Flask(__name__)
 
@@ -26,5 +27,7 @@ def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
-    thread = Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': 5000, 'threaded': True})
+    port = int(os.environ.get('PORT', 5000))  # Get the port from the environment variables
+    thread = Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': port, 'threaded': True})
     thread.start()
+
